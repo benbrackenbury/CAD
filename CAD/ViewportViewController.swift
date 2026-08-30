@@ -86,11 +86,17 @@ final class ViewportViewController: NSViewController {
     }
 
     func highlight(featureID: UUID?) {
-        if let featureID {
-            controller.selectedBodyIDs = [featureID.uuidString]
-        } else {
-            controller.selectedBodyIDs = []
+        // OCCTSwiftViewport 1.2.0's selection-outline pass crashes Metal validation
+        // (CPU buffer 160 bytes, shader 148). Tint the body instead.
+        controller.selectedBodyIDs = []
+        let selectedID = featureID?.uuidString
+        for index in bodiesBox.value.indices {
+            bodiesBox.value[index].color =
+                bodiesBox.value[index].id == selectedID
+                ? Tessellator.selectedColor
+                : Tessellator.solidColor
         }
+        hostingView?.rootView = ViewportRoot(controller: controller, bodies: bindingBodies)
     }
 
     func setBodyOrigin(id: UUID, x: Double, y: Double, z: Double) {

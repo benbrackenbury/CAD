@@ -4,6 +4,7 @@ import simd
 
 enum Tessellator {
     static let solidColor = SIMD4<Float>(0.55, 0.62, 0.72, 1)
+    static let selectedColor = SIMD4<Float>(0.30, 0.52, 0.92, 1)
 
     static func bodies(from part: PartFile) -> [ViewportBody] {
         part.features.compactMap { feature in
