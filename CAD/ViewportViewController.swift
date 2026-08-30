@@ -1,5 +1,6 @@
 import Cocoa
 import OCCTSwiftViewport
+import simd
 import SwiftUI
 
 struct ViewportRoot: View {
@@ -82,6 +83,22 @@ final class ViewportViewController: NSViewController {
 
     func toggleGrid() {
         controller.toggleGrid()
+    }
+
+    func highlight(featureID: UUID?) {
+        if let featureID {
+            controller.selectedBodyIDs = [featureID.uuidString]
+        } else {
+            controller.selectedBodyIDs = []
+        }
+    }
+
+    func setBodyOrigin(id: UUID, x: Double, y: Double, z: Double) {
+        guard let index = bodiesBox.value.firstIndex(where: { $0.id == id.uuidString }) else { return }
+        var body = bodiesBox.value[index]
+        body.transform.columns.3 = SIMD4(Float(x), Float(y), Float(z), 1)
+        bodiesBox.value[index] = body
+        hostingView?.rootView = ViewportRoot(controller: controller, bodies: bindingBodies)
     }
 
     @objc func frameSelection(_ sender: Any?) {

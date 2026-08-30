@@ -1,5 +1,6 @@
 import Cocoa
 import OCCTSwiftViewport
+import simd
 
 final class DocumentWindowController: NSWindowController, NSToolbarDelegate, BrowserViewControllerDelegate, InspectorViewControllerDelegate {
     private let splitViewController = NSSplitViewController()
@@ -26,6 +27,7 @@ final class DocumentWindowController: NSWindowController, NSToolbarDelegate, Bro
         configureToolbar()
         browserViewController.delegate = self
         inspectorViewController.delegate = self
+        wireViewportInteraction()
         window.setFrameUsingName("CADDocumentWindow")
         window.setFrameAutosaveName("CADDocumentWindow")
     }
@@ -37,12 +39,16 @@ final class DocumentWindowController: NSWindowController, NSToolbarDelegate, Bro
         }
         browserViewController.reload(document.part, selectedFeatureID: selectedFeatureID)
         viewportViewController.bodies = Tessellator.bodies(from: document.part)
+        viewportViewController.highlight(featureID: selectedFeatureID)
         refreshInspector()
     }
 
     func selectFeature(_ id: UUID?) {
         selectedFeatureID = id
-        reloadPart()
+        guard let document = document as? Document else { return }
+        browserViewController.reload(document.part, selectedFeatureID: id)
+        viewportViewController.highlight(featureID: id)
+        refreshInspector()
     }
 
     func browserViewController(_ browser: BrowserViewController, didSelectFeatureID id: UUID?) {
@@ -154,6 +160,117 @@ final class DocumentWindowController: NSWindowController, NSToolbarDelegate, Bro
         default:
             return nil
         }
+    }
+
+    private struct BodyDrag {
+        var id: UUID
+        var startX: Double
+        var startY: Double
+        var startZ: Double
+        var x: Double
+        var y: Double
+        var z: Double
+        var pendingDelta: SIMD2<Float>
+        var isMoving: Bool
+    }
+
+    private var bodyDrag: BodyDrag?
+
+    private func wireViewportInteraction() {
+        let viewport = viewportViewController
+        viewport.controller.onPick = { [weak self] result in
+            self?.handleViewportPick(result)
+        }
+        viewport.controller.onInputEvent = { [weak self] event in
+            self?.handleViewportInput(event)
+        }
+    }
+
+    private func handleViewportPick(_ result: PickResult?) {
+        if let result, let id = UUID(uuidString: result.bodyID) {
+            selectFeature(id)
+            if var drag = bodyDrag, !drag.isMoving, let feature = currentFeature(id: id) {
+                drag.id = id
+                drag.startX = feature.originX
+                drag.startY = feature.originY
+                drag.startZ = feature.originZ
+                drag.x = feature.originX
+                drag.y = feature.originY
+                drag.z = feature.originZ
+                drag.isMoving = true
+                bodyDrag = drag
+                applyPendingDrag()
+            }
+            return
+        }
+        if bodyDrag?.isMoving != true {
+            bodyDrag = nil
+            selectFeature(nil)
+        }
+    }
+
+    private func handleViewportInput(_ event: ViewportInputEvent) {
+        switch event {
+        case .dragChanged(let delta, let modifiers):
+            let action = viewportViewController.controller.configuration.gestureConfiguration.dragAction(for: modifiers)
+            guard action == .select else {
+                bodyDrag = nil
+                return
+            }
+            if var drag = bodyDrag {
+                drag.pendingDelta += delta
+                bodyDrag = drag
+                applyPendingDrag()
+            } else {
+                bodyDrag = BodyDrag(
+                    id: selectedFeatureID ?? UUID(),
+                    startX: 0, startY: 0, startZ: 0,
+                    x: 0, y: 0, z: 0,
+                    pendingDelta: delta,
+                    isMoving: false
+                )
+            }
+        case .dragEnded:
+            commitBodyDrag()
+        default:
+            break
+        }
+    }
+
+    private func applyPendingDrag() {
+        guard var drag = bodyDrag, drag.isMoving else { return }
+        let camera = viewportViewController.controller.cameraState
+        let gestures = viewportViewController.controller.configuration.gestureConfiguration
+        let scale = max(gestures.minPanSpeed, camera.distance * gestures.panSensitivity)
+        let delta = drag.pendingDelta
+        drag.pendingDelta = .zero
+        let world = camera.rightVector * delta.x * scale + camera.upVector * (-delta.y) * scale
+        drag.x += Double(world.x)
+        drag.y += Double(world.y)
+        drag.z += Double(world.z)
+        let x = drag.x.rounded()
+        let y = drag.y.rounded()
+        let z = drag.z.rounded()
+        bodyDrag = drag
+        viewportViewController.setBodyOrigin(id: drag.id, x: x, y: y, z: z)
+        if let feature = currentFeature(id: drag.id) {
+            inspectorViewController.show(feature.placing(x: x, y: y, z: z))
+        }
+    }
+
+    private func commitBodyDrag() {
+        defer { bodyDrag = nil }
+        guard let drag = bodyDrag, drag.isMoving else { return }
+        let x = drag.x.rounded()
+        let y = drag.y.rounded()
+        let z = drag.z.rounded()
+        guard x != drag.startX || y != drag.startY || z != drag.startZ else { return }
+        guard let feature = currentFeature(id: drag.id) else { return }
+        (document as? Document)?.updateFeature(feature.placing(x: x, y: y, z: z), actionName: "Move")
+    }
+
+    private func currentFeature(id: UUID) -> Feature? {
+        (document as? Document)?.part.features.first { $0.id == id }
     }
 
     @objc func insertBox(_ sender: Any?) {

@@ -14,13 +14,14 @@ xcodebuild -downloadComponent MetalToolchain
 
 File, Edit, View, and Solid are the menus that matter.
 
-**Solid → Box** (⌥⌘B) drops a 40×20×10 mm box. Cylinder and Sphere are in the same menu. Select a feature in the Timeline sidebar and change sizes in the inspector. ⌘Z undoes. Delete removes the selected feature.
+**Solid → Box** (⌥⌘B) drops a 40×20×10 mm box. Cylinder and Sphere are in the same menu. Click a body to select it, then drag to move it (snaps to 1 mm). The inspector has size and X/Y/Z. ⌘Z undoes. Delete removes the selected feature.
 
 Navigation:
 
 | Input | Action |
 | --- | --- |
 | Click | Select |
+| Drag | Move the selected body |
 | Option-drag | Orbit |
 | Shift-drag | Pan |
 | Scroll or pinch | Zoom |
@@ -45,7 +46,7 @@ A box looks like `{ "type": "box", "width": 40, "depth": 20, "height": 10, ... }
 
 ## What is not built yet
 
-Sketch and extrude. Move, rotate, scale as features. Union, cut, fillet, chamfer. STL and 3MF export. The Open CASCADE kernel; the viewport currently tessellates primitives itself, so fillets and booleans cannot be real until that lands.
+Sketch and extrude. Rotate and scale as features. Union, cut, fillet, chamfer. STL and 3MF export. The Open CASCADE kernel; the viewport currently tessellates primitives itself, so fillets and booleans cannot be real until that lands.
 
 ## Tests
 

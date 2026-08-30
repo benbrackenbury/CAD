@@ -14,6 +14,9 @@ final class InspectorViewController: NSViewController, NSTextFieldDelegate {
     private var depthField = NSTextField()
     private var heightField = NSTextField()
     private var radiusField = NSTextField()
+    private var xField = NSTextField()
+    private var yField = NSTextField()
+    private var zField = NSTextField()
     private var widthRow: NSView!
     private var depthRow: NSView!
     private var heightRow: NSView!
@@ -39,6 +42,9 @@ final class InspectorViewController: NSViewController, NSTextFieldDelegate {
         depthField = makeMillimetreField()
         heightField = makeMillimetreField()
         radiusField = makeMillimetreField()
+        xField = makeMillimetreField()
+        yField = makeMillimetreField()
+        zField = makeMillimetreField()
         widthRow = labeledRow("Width", field: widthField)
         depthRow = labeledRow("Depth", field: depthField)
         heightRow = labeledRow("Height", field: heightField)
@@ -47,6 +53,9 @@ final class InspectorViewController: NSViewController, NSTextFieldDelegate {
         stack.addArrangedSubview(depthRow)
         stack.addArrangedSubview(heightRow)
         stack.addArrangedSubview(radiusRow)
+        stack.addArrangedSubview(labeledRow("X", field: xField))
+        stack.addArrangedSubview(labeledRow("Y", field: yField))
+        stack.addArrangedSubview(labeledRow("Z", field: zField))
 
         view.addSubview(titleLabel)
         view.addSubview(placeholderLabel)
@@ -86,6 +95,7 @@ final class InspectorViewController: NSViewController, NSTextFieldDelegate {
             widthField.doubleValue = box.width
             depthField.doubleValue = box.depth
             heightField.doubleValue = box.height
+            fillOrigin(box.originX, box.originY, box.originZ)
         case .cylinder(let cylinder):
             titleLabel.stringValue = "Cylinder"
             widthRow.isHidden = true
@@ -94,6 +104,7 @@ final class InspectorViewController: NSViewController, NSTextFieldDelegate {
             radiusRow.isHidden = false
             radiusField.doubleValue = cylinder.radius
             heightField.doubleValue = cylinder.height
+            fillOrigin(cylinder.originX, cylinder.originY, cylinder.originZ)
         case .sphere(let sphere):
             titleLabel.stringValue = "Sphere"
             widthRow.isHidden = true
@@ -101,7 +112,14 @@ final class InspectorViewController: NSViewController, NSTextFieldDelegate {
             heightRow.isHidden = true
             radiusRow.isHidden = false
             radiusField.doubleValue = sphere.radius
+            fillOrigin(sphere.originX, sphere.originY, sphere.originZ)
         }
+    }
+
+    private func fillOrigin(_ x: Double, _ y: Double, _ z: Double) {
+        xField.doubleValue = x
+        yField.doubleValue = y
+        zField.doubleValue = z
     }
 
     func controlTextDidEndEditing(_ obj: Notification) {
@@ -115,26 +133,50 @@ final class InspectorViewController: NSViewController, NSTextFieldDelegate {
             let width = max(widthField.doubleValue, 0.01)
             let depth = max(depthField.doubleValue, 0.01)
             let height = max(heightField.doubleValue, 0.01)
-            guard width != box.width || depth != box.depth || height != box.height else { return }
+            let x = xField.doubleValue
+            let y = yField.doubleValue
+            let z = zField.doubleValue
+            let resized = width != box.width || depth != box.depth || height != box.height
+            let moved = x != box.originX || y != box.originY || z != box.originZ
+            guard resized || moved else { return }
             box.width = width
             box.depth = depth
             box.height = height
+            box.originX = x
+            box.originY = y
+            box.originZ = z
             editingFeature = .box(box)
-            delegate?.inspectorViewController(self, didUpdate: .box(box), actionName: "Resize Box")
+            delegate?.inspectorViewController(self, didUpdate: .box(box), actionName: moved && !resized ? "Move Box" : "Resize Box")
         case .cylinder(var cylinder):
             let radius = max(radiusField.doubleValue, 0.01)
             let height = max(heightField.doubleValue, 0.01)
-            guard radius != cylinder.radius || height != cylinder.height else { return }
+            let x = xField.doubleValue
+            let y = yField.doubleValue
+            let z = zField.doubleValue
+            let resized = radius != cylinder.radius || height != cylinder.height
+            let moved = x != cylinder.originX || y != cylinder.originY || z != cylinder.originZ
+            guard resized || moved else { return }
             cylinder.radius = radius
             cylinder.height = height
+            cylinder.originX = x
+            cylinder.originY = y
+            cylinder.originZ = z
             editingFeature = .cylinder(cylinder)
-            delegate?.inspectorViewController(self, didUpdate: .cylinder(cylinder), actionName: "Resize Cylinder")
+            delegate?.inspectorViewController(self, didUpdate: .cylinder(cylinder), actionName: moved && !resized ? "Move Cylinder" : "Resize Cylinder")
         case .sphere(var sphere):
             let radius = max(radiusField.doubleValue, 0.01)
-            guard radius != sphere.radius else { return }
+            let x = xField.doubleValue
+            let y = yField.doubleValue
+            let z = zField.doubleValue
+            let resized = radius != sphere.radius
+            let moved = x != sphere.originX || y != sphere.originY || z != sphere.originZ
+            guard resized || moved else { return }
             sphere.radius = radius
+            sphere.originX = x
+            sphere.originY = y
+            sphere.originZ = z
             editingFeature = .sphere(sphere)
-            delegate?.inspectorViewController(self, didUpdate: .sphere(sphere), actionName: "Resize Sphere")
+            delegate?.inspectorViewController(self, didUpdate: .sphere(sphere), actionName: moved && !resized ? "Move Sphere" : "Resize Sphere")
         }
     }
 

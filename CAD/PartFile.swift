@@ -105,6 +105,50 @@ enum Feature: Equatable, Sendable, Identifiable {
             return "Sphere"
         }
     }
+
+    var originX: Double {
+        switch self {
+        case .box(let feature): return feature.originX
+        case .cylinder(let feature): return feature.originX
+        case .sphere(let feature): return feature.originX
+        }
+    }
+
+    var originY: Double {
+        switch self {
+        case .box(let feature): return feature.originY
+        case .cylinder(let feature): return feature.originY
+        case .sphere(let feature): return feature.originY
+        }
+    }
+
+    var originZ: Double {
+        switch self {
+        case .box(let feature): return feature.originZ
+        case .cylinder(let feature): return feature.originZ
+        case .sphere(let feature): return feature.originZ
+        }
+    }
+
+    func placing(x: Double, y: Double, z: Double) -> Feature {
+        switch self {
+        case .box(var feature):
+            feature.originX = x
+            feature.originY = y
+            feature.originZ = z
+            return .box(feature)
+        case .cylinder(var feature):
+            feature.originX = x
+            feature.originY = y
+            feature.originZ = z
+            return .cylinder(feature)
+        case .sphere(var feature):
+            feature.originX = x
+            feature.originY = y
+            feature.originZ = z
+            return .sphere(feature)
+        }
+    }
 }
 
 extension Feature: Codable {

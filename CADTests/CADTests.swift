@@ -31,6 +31,15 @@ struct PartFileTests {
         #expect(loaded == original)
     }
 
+    @Test func placingMovesOrigin() {
+        let box = Feature.box(BoxFeature(width: 40, depth: 20, height: 10))
+        let moved = box.placing(x: 5, y: -3, z: 12)
+        #expect(moved.originX == 5)
+        #expect(moved.originY == -3)
+        #expect(moved.originZ == 12)
+        #expect(box.originX == 0)
+    }
+
     @Test func futureVersionIsRejected() {
         let json = """
         { "version": 99, "units": "mm", "features": [] }
