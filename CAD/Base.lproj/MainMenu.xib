@@ -700,6 +700,19 @@
                         </items>
                     </menu>
                 </menuItem>
+                <menuItem title="Solid" id="sol-CAD-mnu">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <menu key="submenu" title="Solid" id="sol-CAD-sub">
+                        <items>
+                            <menuItem title="Box" keyEquivalent="b" id="sol-CAD-box">
+                                <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
+                                <connections>
+                                    <action selector="insertBox:" target="-1" id="sol-CAD-bxa"/>
+                                </connections>
+                            </menuItem>
+                        </items>
+                    </menu>
+                </menuItem>
                 <menuItem title="Window" id="aUF-d1-5bR">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <menu key="submenu" title="Window" systemMenu="window" id="Td7-aD-5lo">

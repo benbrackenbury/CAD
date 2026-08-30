@@ -50,4 +50,37 @@ final class Document: NSDocument {
             (controller as? DocumentWindowController)?.reloadPart()
         }
     }
+
+    func replacePart(_ newPart: PartFile, actionName: String) {
+        let oldPart = part
+        undoManager?.registerUndo(withTarget: self) { document in
+            document.replacePart(oldPart, actionName: actionName)
+        }
+        undoManager?.setActionName(actionName)
+        part = newPart
+        notifyWindows()
+    }
+
+    func insertBox() {
+        let box = BoxFeature(width: 40, depth: 20, height: 10)
+        var next = part
+        next.features.append(.box(box))
+        replacePart(next, actionName: "Insert Box")
+        if let windowController = windowControllers.first as? DocumentWindowController {
+            windowController.selectFeature(box.id)
+        }
+    }
+
+    func updateBox(_ box: BoxFeature, actionName: String) {
+        var next = part
+        guard let index = next.features.firstIndex(where: { $0.id == box.id }) else { return }
+        next.features[index] = .box(box)
+        replacePart(next, actionName: actionName)
+    }
+
+    func deleteFeature(id: UUID) {
+        var next = part
+        next.features.removeAll { $0.id == id }
+        replacePart(next, actionName: "Delete")
+    }
 }

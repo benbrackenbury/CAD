@@ -1,11 +1,12 @@
 import Cocoa
 import OCCTSwiftViewport
 
-final class DocumentWindowController: NSWindowController, NSToolbarDelegate {
+final class DocumentWindowController: NSWindowController, NSToolbarDelegate, BrowserViewControllerDelegate, InspectorViewControllerDelegate {
     private let splitViewController = NSSplitViewController()
     let browserViewController = BrowserViewController()
     let viewportViewController = ViewportViewController()
     let inspectorViewController = InspectorViewController()
+    private var selectedFeatureID: UUID?
 
     convenience init() {
         let window = NSWindow(
@@ -23,13 +24,48 @@ final class DocumentWindowController: NSWindowController, NSToolbarDelegate {
         window.contentViewController = splitViewController
         configureSplit()
         configureToolbar()
+        browserViewController.delegate = self
+        inspectorViewController.delegate = self
         window.setFrameUsingName("CADDocumentWindow")
         window.setFrameAutosaveName("CADDocumentWindow")
     }
 
     func reloadPart() {
         guard let document = document as? Document else { return }
-        browserViewController.reload(document.part)
+        if let selectedFeatureID, !document.part.features.contains(where: { $0.id == selectedFeatureID }) {
+            self.selectedFeatureID = nil
+        }
+        browserViewController.reload(document.part, selectedFeatureID: selectedFeatureID)
+        viewportViewController.bodies = Tessellator.bodies(from: document.part)
+        refreshInspector()
+    }
+
+    func selectFeature(_ id: UUID?) {
+        selectedFeatureID = id
+        reloadPart()
+    }
+
+    func browserViewController(_ browser: BrowserViewController, didSelectFeatureID id: UUID?) {
+        selectedFeatureID = id
+        refreshInspector()
+    }
+
+    func inspectorViewController(_ inspector: InspectorViewController, didUpdate box: BoxFeature, actionName: String) {
+        (document as? Document)?.updateBox(box, actionName: actionName)
+    }
+
+    private func refreshInspector() {
+        guard let document = document as? Document,
+              let selectedFeatureID,
+              let feature = document.part.features.first(where: { $0.id == selectedFeatureID })
+        else {
+            inspectorViewController.showNoSelection()
+            return
+        }
+        switch feature {
+        case .box(let box):
+            inspectorViewController.show(box: box)
+        }
     }
 
     private func configureSplit() {
@@ -66,10 +102,13 @@ final class DocumentWindowController: NSWindowController, NSToolbarDelegate {
         window?.toolbarStyle = .unified
     }
 
+    private let boxItemIdentifier = NSToolbarItem.Identifier("InsertBox")
+
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
         [
             .toggleSidebar,
             .sidebarTrackingSeparator,
+            boxItemIdentifier,
             .flexibleSpace,
             .inspectorTrackingSeparator,
             .toggleInspector,
@@ -105,6 +144,40 @@ final class DocumentWindowController: NSWindowController, NSToolbarDelegate {
         itemForItemIdentifier itemIdentifier: NSToolbarItem.Identifier,
         willBeInsertedIntoToolbar flag: Bool
     ) -> NSToolbarItem? {
-        nil
+        switch itemIdentifier {
+        case boxItemIdentifier:
+            let item = NSToolbarItem(itemIdentifier: itemIdentifier)
+            item.label = "Box"
+            item.paletteLabel = "Insert Box"
+            item.toolTip = "Insert a box"
+            item.image = NSImage(systemSymbolName: "cube", accessibilityDescription: "Insert Box")
+            item.target = self
+            item.action = #selector(insertBox(_:))
+            return item
+        default:
+            return nil
+        }
+    }
+
+    @objc func insertBox(_ sender: Any?) {
+        (document as? Document)?.insertBox()
+    }
+
+    override func keyDown(with event: NSEvent) {
+        if event.charactersIgnoringModifiers == "\u{7F}" || event.charactersIgnoringModifiers == "\u{F728}" {
+            deleteForward(nil)
+            return
+        }
+        super.keyDown(with: event)
+    }
+
+    override func deleteForward(_ sender: Any?) {
+        guard let selectedFeatureID else { return }
+        (document as? Document)?.deleteFeature(id: selectedFeatureID)
+        self.selectedFeatureID = nil
+    }
+
+    override func deleteBackward(_ sender: Any?) {
+        deleteForward(sender)
     }
 }

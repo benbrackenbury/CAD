@@ -1,13 +1,21 @@
 import Cocoa
 
+protocol BrowserViewControllerDelegate: AnyObject {
+    func browserViewController(_ browser: BrowserViewController, didSelectFeatureID id: UUID?)
+}
+
 final class BrowserViewController: NSViewController, NSOutlineViewDataSource, NSOutlineViewDelegate {
     private enum Group: String, CaseIterable {
         case bodies = "Bodies"
         case timeline = "Timeline"
     }
 
+    weak var delegate: BrowserViewControllerDelegate?
+
     private let outline = NSOutlineView()
     private let scrollView = NSScrollView()
+    private var part = PartFile()
+    private var selectedFeatureID: UUID?
 
     override func loadView() {
         view = NSView()
@@ -43,27 +51,53 @@ final class BrowserViewController: NSViewController, NSOutlineViewDataSource, NS
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        outline.reloadData()
-        outline.expandItem(Group.bodies)
-        outline.expandItem(Group.timeline)
+        reload(part, selectedFeatureID: selectedFeatureID)
     }
 
-    func reload(_ part: PartFile) {
+    func reload(_ part: PartFile, selectedFeatureID: UUID?) {
+        self.part = part
+        self.selectedFeatureID = selectedFeatureID
         outline.reloadData()
         outline.expandItem(Group.bodies)
         outline.expandItem(Group.timeline)
-        _ = part
+        if let selectedFeatureID {
+            let row = outline.row(forItem: selectedFeatureID.uuidString)
+            if row >= 0 {
+                outline.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
+            }
+        } else {
+            outline.deselectAll(nil)
+        }
     }
 
     func outlineView(_ outlineView: NSOutlineView, numberOfChildrenOfItem item: Any?) -> Int {
         if item == nil {
             return Group.allCases.count
         }
+        if let group = item as? Group {
+            switch group {
+            case .bodies:
+                return part.features.isEmpty ? 0 : 1
+            case .timeline:
+                return part.features.count
+            }
+        }
         return 0
     }
 
     func outlineView(_ outlineView: NSOutlineView, child index: Int, ofItem item: Any?) -> Any {
-        Group.allCases[index]
+        if item == nil {
+            return Group.allCases[index]
+        }
+        if let group = item as? Group {
+            switch group {
+            case .bodies:
+                return "Body 1"
+            case .timeline:
+                return part.features[index].id.uuidString
+            }
+        }
+        return index
     }
 
     func outlineView(_ outlineView: NSOutlineView, isItemExpandable item: Any) -> Bool {
@@ -81,12 +115,24 @@ final class BrowserViewController: NSViewController, NSOutlineViewDataSource, NS
         if let group = item as? Group {
             cell.textField?.stringValue = group.rawValue
             cell.textField?.font = .systemFont(ofSize: NSFont.smallSystemFontSize, weight: .semibold)
+        } else if let idString = item as? String, let id = UUID(uuidString: idString),
+                  let feature = part.features.first(where: { $0.id == id }) {
+            cell.textField?.stringValue = feature.timelineName
+            cell.textField?.font = .systemFont(ofSize: NSFont.systemFontSize)
+        } else if let title = item as? String {
+            cell.textField?.stringValue = title
+            cell.textField?.font = .systemFont(ofSize: NSFont.systemFontSize)
         }
         return cell
     }
 
     func outlineView(_ outlineView: NSOutlineView, shouldSelectItem item: Any) -> Bool {
-        !(item is Group)
+        item is String && UUID(uuidString: item as? String ?? "") != nil
+    }
+
+    func outlineViewSelectionDidChange(_ notification: Notification) {
+        let item = outline.item(atRow: outline.selectedRow) as? String
+        delegate?.browserViewController(self, didSelectFeatureID: item.flatMap(UUID.init(uuidString:)))
     }
 
     private func makeCell(identifier: NSUserInterfaceItemIdentifier) -> NSTableCellView {
