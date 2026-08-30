@@ -22,6 +22,15 @@ struct PartFileTests {
         #expect(loaded == original)
     }
 
+    @Test func cylinderAndSphereRoundTrip() throws {
+        let original = PartFile(features: [
+            .cylinder(CylinderFeature(radius: 10, height: 30)),
+            .sphere(SphereFeature(radius: 15)),
+        ])
+        let loaded = try PartFile.decoded(from: original.encoded())
+        #expect(loaded == original)
+    }
+
     @Test func futureVersionIsRejected() {
         let json = """
         { "version": 99, "units": "mm", "features": [] }

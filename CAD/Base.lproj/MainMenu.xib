@@ -710,6 +710,18 @@
                                     <action selector="insertBox:" target="-1" id="sol-CAD-bxa"/>
                                 </connections>
                             </menuItem>
+                            <menuItem title="Cylinder" id="sol-CAD-cyl">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="insertCylinder:" target="-1" id="sol-CAD-cya"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Sphere" id="sol-CAD-sph">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="insertSphere:" target="-1" id="sol-CAD-spa"/>
+                                </connections>
+                            </menuItem>
                         </items>
                     </menu>
                 </menuItem>

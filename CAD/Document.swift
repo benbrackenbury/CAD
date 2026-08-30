@@ -62,20 +62,31 @@ final class Document: NSDocument {
     }
 
     func insertBox() {
-        let box = BoxFeature(width: 40, depth: 20, height: 10)
-        var next = part
-        next.features.append(.box(box))
-        replacePart(next, actionName: "Insert Box")
-        if let windowController = windowControllers.first as? DocumentWindowController {
-            windowController.selectFeature(box.id)
-        }
+        insert(.box(BoxFeature(width: 40, depth: 20, height: 10)), actionName: "Insert Box")
     }
 
-    func updateBox(_ box: BoxFeature, actionName: String) {
+    func insertCylinder() {
+        insert(.cylinder(CylinderFeature(radius: 10, height: 30)), actionName: "Insert Cylinder")
+    }
+
+    func insertSphere() {
+        insert(.sphere(SphereFeature(radius: 15)), actionName: "Insert Sphere")
+    }
+
+    func updateFeature(_ feature: Feature, actionName: String) {
         var next = part
-        guard let index = next.features.firstIndex(where: { $0.id == box.id }) else { return }
-        next.features[index] = .box(box)
+        guard let index = next.features.firstIndex(where: { $0.id == feature.id }) else { return }
+        next.features[index] = feature
         replacePart(next, actionName: actionName)
+    }
+
+    private func insert(_ feature: Feature, actionName: String) {
+        var next = part
+        next.features.append(feature)
+        replacePart(next, actionName: actionName)
+        if let windowController = windowControllers.first as? DocumentWindowController {
+            windowController.selectFeature(feature.id)
+        }
     }
 
     func deleteFeature(id: UUID) {

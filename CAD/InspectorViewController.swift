@@ -1,7 +1,7 @@
 import Cocoa
 
 protocol InspectorViewControllerDelegate: AnyObject {
-    func inspectorViewController(_ inspector: InspectorViewController, didUpdate box: BoxFeature, actionName: String)
+    func inspectorViewController(_ inspector: InspectorViewController, didUpdate feature: Feature, actionName: String)
 }
 
 final class InspectorViewController: NSViewController, NSTextFieldDelegate {
@@ -13,7 +13,12 @@ final class InspectorViewController: NSViewController, NSTextFieldDelegate {
     private var widthField = NSTextField()
     private var depthField = NSTextField()
     private var heightField = NSTextField()
-    private var editingBox: BoxFeature?
+    private var radiusField = NSTextField()
+    private var widthRow: NSView!
+    private var depthRow: NSView!
+    private var heightRow: NSView!
+    private var radiusRow: NSView!
+    private var editingFeature: Feature?
 
     override func loadView() {
         view = NSView()
@@ -33,9 +38,15 @@ final class InspectorViewController: NSViewController, NSTextFieldDelegate {
         widthField = makeMillimetreField()
         depthField = makeMillimetreField()
         heightField = makeMillimetreField()
-        stack.addArrangedSubview(labeledRow("Width", field: widthField))
-        stack.addArrangedSubview(labeledRow("Depth", field: depthField))
-        stack.addArrangedSubview(labeledRow("Height", field: heightField))
+        radiusField = makeMillimetreField()
+        widthRow = labeledRow("Width", field: widthField)
+        depthRow = labeledRow("Depth", field: depthField)
+        heightRow = labeledRow("Height", field: heightField)
+        radiusRow = labeledRow("Radius", field: radiusField)
+        stack.addArrangedSubview(widthRow)
+        stack.addArrangedSubview(depthRow)
+        stack.addArrangedSubview(heightRow)
+        stack.addArrangedSubview(radiusRow)
 
         view.addSubview(titleLabel)
         view.addSubview(placeholderLabel)
@@ -55,20 +66,42 @@ final class InspectorViewController: NSViewController, NSTextFieldDelegate {
     }
 
     func showNoSelection() {
-        editingBox = nil
+        editingFeature = nil
         titleLabel.stringValue = "Inspector"
         placeholderLabel.isHidden = false
         stack.isHidden = true
     }
 
-    func show(box: BoxFeature) {
-        editingBox = box
-        titleLabel.stringValue = "Box"
+    func show(_ feature: Feature) {
+        editingFeature = feature
         placeholderLabel.isHidden = true
         stack.isHidden = false
-        widthField.doubleValue = box.width
-        depthField.doubleValue = box.depth
-        heightField.doubleValue = box.height
+        switch feature {
+        case .box(let box):
+            titleLabel.stringValue = "Box"
+            widthRow.isHidden = false
+            depthRow.isHidden = false
+            heightRow.isHidden = false
+            radiusRow.isHidden = true
+            widthField.doubleValue = box.width
+            depthField.doubleValue = box.depth
+            heightField.doubleValue = box.height
+        case .cylinder(let cylinder):
+            titleLabel.stringValue = "Cylinder"
+            widthRow.isHidden = true
+            depthRow.isHidden = true
+            heightRow.isHidden = false
+            radiusRow.isHidden = false
+            radiusField.doubleValue = cylinder.radius
+            heightField.doubleValue = cylinder.height
+        case .sphere(let sphere):
+            titleLabel.stringValue = "Sphere"
+            widthRow.isHidden = true
+            depthRow.isHidden = true
+            heightRow.isHidden = true
+            radiusRow.isHidden = false
+            radiusField.doubleValue = sphere.radius
+        }
     }
 
     func controlTextDidEndEditing(_ obj: Notification) {
@@ -76,16 +109,33 @@ final class InspectorViewController: NSViewController, NSTextFieldDelegate {
     }
 
     private func commitEdits() {
-        guard var box = editingBox else { return }
-        let width = max(widthField.doubleValue, 0.01)
-        let depth = max(depthField.doubleValue, 0.01)
-        let height = max(heightField.doubleValue, 0.01)
-        guard width != box.width || depth != box.depth || height != box.height else { return }
-        box.width = width
-        box.depth = depth
-        box.height = height
-        editingBox = box
-        delegate?.inspectorViewController(self, didUpdate: box, actionName: "Resize Box")
+        guard let feature = editingFeature else { return }
+        switch feature {
+        case .box(var box):
+            let width = max(widthField.doubleValue, 0.01)
+            let depth = max(depthField.doubleValue, 0.01)
+            let height = max(heightField.doubleValue, 0.01)
+            guard width != box.width || depth != box.depth || height != box.height else { return }
+            box.width = width
+            box.depth = depth
+            box.height = height
+            editingFeature = .box(box)
+            delegate?.inspectorViewController(self, didUpdate: .box(box), actionName: "Resize Box")
+        case .cylinder(var cylinder):
+            let radius = max(radiusField.doubleValue, 0.01)
+            let height = max(heightField.doubleValue, 0.01)
+            guard radius != cylinder.radius || height != cylinder.height else { return }
+            cylinder.radius = radius
+            cylinder.height = height
+            editingFeature = .cylinder(cylinder)
+            delegate?.inspectorViewController(self, didUpdate: .cylinder(cylinder), actionName: "Resize Cylinder")
+        case .sphere(var sphere):
+            let radius = max(radiusField.doubleValue, 0.01)
+            guard radius != sphere.radius else { return }
+            sphere.radius = radius
+            editingFeature = .sphere(sphere)
+            delegate?.inspectorViewController(self, didUpdate: .sphere(sphere), actionName: "Resize Sphere")
+        }
     }
 
     private func makeMillimetreField() -> NSTextField {

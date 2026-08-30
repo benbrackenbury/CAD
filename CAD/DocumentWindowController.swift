@@ -50,8 +50,8 @@ final class DocumentWindowController: NSWindowController, NSToolbarDelegate, Bro
         refreshInspector()
     }
 
-    func inspectorViewController(_ inspector: InspectorViewController, didUpdate box: BoxFeature, actionName: String) {
-        (document as? Document)?.updateBox(box, actionName: actionName)
+    func inspectorViewController(_ inspector: InspectorViewController, didUpdate feature: Feature, actionName: String) {
+        (document as? Document)?.updateFeature(feature, actionName: actionName)
     }
 
     private func refreshInspector() {
@@ -62,10 +62,7 @@ final class DocumentWindowController: NSWindowController, NSToolbarDelegate, Bro
             inspectorViewController.showNoSelection()
             return
         }
-        switch feature {
-        case .box(let box):
-            inspectorViewController.show(box: box)
-        }
+        inspectorViewController.show(feature)
     }
 
     private func configureSplit() {
@@ -161,6 +158,14 @@ final class DocumentWindowController: NSWindowController, NSToolbarDelegate, Bro
 
     @objc func insertBox(_ sender: Any?) {
         (document as? Document)?.insertBox()
+    }
+
+    @objc func insertCylinder(_ sender: Any?) {
+        (document as? Document)?.insertCylinder()
+    }
+
+    @objc func insertSphere(_ sender: Any?) {
+        (document as? Document)?.insertSphere()
     }
 
     override func keyDown(with event: NSEvent) {

@@ -32,12 +32,65 @@ struct BoxFeature: Codable, Equatable, Sendable, Identifiable {
     }
 }
 
+struct CylinderFeature: Codable, Equatable, Sendable, Identifiable {
+    var id: UUID
+    var radius: Double
+    var height: Double
+    var originX: Double
+    var originY: Double
+    var originZ: Double
+
+    init(
+        id: UUID = UUID(),
+        radius: Double,
+        height: Double,
+        originX: Double = 0,
+        originY: Double = 0,
+        originZ: Double = 0
+    ) {
+        self.id = id
+        self.radius = radius
+        self.height = height
+        self.originX = originX
+        self.originY = originY
+        self.originZ = originZ
+    }
+}
+
+struct SphereFeature: Codable, Equatable, Sendable, Identifiable {
+    var id: UUID
+    var radius: Double
+    var originX: Double
+    var originY: Double
+    var originZ: Double
+
+    init(
+        id: UUID = UUID(),
+        radius: Double,
+        originX: Double = 0,
+        originY: Double = 0,
+        originZ: Double = 0
+    ) {
+        self.id = id
+        self.radius = radius
+        self.originX = originX
+        self.originY = originY
+        self.originZ = originZ
+    }
+}
+
 enum Feature: Equatable, Sendable, Identifiable {
     case box(BoxFeature)
+    case cylinder(CylinderFeature)
+    case sphere(SphereFeature)
 
     var id: UUID {
         switch self {
         case .box(let feature):
+            return feature.id
+        case .cylinder(let feature):
+            return feature.id
+        case .sphere(let feature):
             return feature.id
         }
     }
@@ -46,6 +99,10 @@ enum Feature: Equatable, Sendable, Identifiable {
         switch self {
         case .box:
             return "Box"
+        case .cylinder:
+            return "Cylinder"
+        case .sphere:
+            return "Sphere"
         }
     }
 }
@@ -57,6 +114,8 @@ extension Feature: Codable {
 
     private enum FeatureType: String, Codable {
         case box
+        case cylinder
+        case sphere
     }
 
     init(from decoder: Decoder) throws {
@@ -65,6 +124,10 @@ extension Feature: Codable {
         switch type {
         case .box:
             self = .box(try BoxFeature(from: decoder))
+        case .cylinder:
+            self = .cylinder(try CylinderFeature(from: decoder))
+        case .sphere:
+            self = .sphere(try SphereFeature(from: decoder))
         }
     }
 
@@ -73,6 +136,12 @@ extension Feature: Codable {
         switch self {
         case .box(let feature):
             try container.encode(FeatureType.box, forKey: .type)
+            try feature.encode(to: encoder)
+        case .cylinder(let feature):
+            try container.encode(FeatureType.cylinder, forKey: .type)
+            try feature.encode(to: encoder)
+        case .sphere(let feature):
+            try container.encode(FeatureType.sphere, forKey: .type)
             try feature.encode(to: encoder)
         }
     }
