@@ -1,4 +1,5 @@
 import Cocoa
+import OCCTSwiftViewport
 
 final class DocumentWindowController: NSWindowController, NSToolbarDelegate {
     private let splitViewController = NSSplitViewController()
@@ -77,6 +78,26 @@ final class DocumentWindowController: NSWindowController, NSToolbarDelegate {
 
     func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
         toolbarDefaultItemIdentifiers(toolbar)
+    }
+
+    @objc func frameSelection(_ sender: Any?) {
+        viewportViewController.frameAll()
+    }
+
+    @objc func viewFront(_ sender: Any?) { viewportViewController.goToStandardView(.front) }
+    @objc func viewBack(_ sender: Any?) { viewportViewController.goToStandardView(.back) }
+    @objc func viewLeft(_ sender: Any?) { viewportViewController.goToStandardView(.left) }
+    @objc func viewRight(_ sender: Any?) { viewportViewController.goToStandardView(.right) }
+    @objc func viewTop(_ sender: Any?) { viewportViewController.goToStandardView(.top) }
+    @objc func viewBottom(_ sender: Any?) { viewportViewController.goToStandardView(.bottom) }
+    @objc func viewIsometric(_ sender: Any?) { viewportViewController.goToStandardView(.isometricFrontRight) }
+
+    @objc func toggleOrthographic(_ sender: Any?) {
+        viewportViewController.toggleProjection()
+    }
+
+    @objc func toggleGridShown(_ sender: Any?) {
+        viewportViewController.toggleGrid()
     }
 
     func toolbar(

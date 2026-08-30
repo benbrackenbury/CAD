@@ -636,6 +636,61 @@
                                     <action selector="toggleInspector:" target="-1" id="ins-CAD-act"/>
                                 </connections>
                             </menuItem>
+                            <menuItem isSeparatorItem="YES" id="vw-CAD-sep"/>
+                            <menuItem title="Frame All" keyEquivalent="f" id="vw-CAD-frm">
+                                <modifierMask key="keyEquivalentModifierMask" shift="YES" command="YES"/>
+                                <connections>
+                                    <action selector="frameSelection:" target="-1" id="vw-CAD-fra"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Orthographic" id="vw-CAD-ort">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="toggleOrthographic:" target="-1" id="vw-CAD-ora"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Show Grid" id="vw-CAD-grd">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="toggleGridShown:" target="-1" id="vw-CAD-gra"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="vw-CAD-se2"/>
+                            <menuItem title="Front" keyEquivalent="1" id="vw-CAD-frn">
+                                <connections>
+                                    <action selector="viewFront:" target="-1" id="vw-CAD-fra1"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Back" keyEquivalent="2" id="vw-CAD-bck">
+                                <connections>
+                                    <action selector="viewBack:" target="-1" id="vw-CAD-baa"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Left" keyEquivalent="3" id="vw-CAD-lft">
+                                <connections>
+                                    <action selector="viewLeft:" target="-1" id="vw-CAD-lea"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Right" keyEquivalent="4" id="vw-CAD-rgt">
+                                <connections>
+                                    <action selector="viewRight:" target="-1" id="vw-CAD-ria"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Top" keyEquivalent="5" id="vw-CAD-top">
+                                <connections>
+                                    <action selector="viewTop:" target="-1" id="vw-CAD-toa"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Bottom" keyEquivalent="6" id="vw-CAD-bot">
+                                <connections>
+                                    <action selector="viewBottom:" target="-1" id="vw-CAD-boa"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Isometric" keyEquivalent="7" id="vw-CAD-iso">
+                                <connections>
+                                    <action selector="viewIsometric:" target="-1" id="vw-CAD-isa"/>
+                                </connections>
+                            </menuItem>
                             <menuItem title="Enter Full Screen" keyEquivalent="f" id="4J7-dP-txa">
                                 <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
                                 <connections>

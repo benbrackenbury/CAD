@@ -116,6 +116,9 @@
 				7EA0C24A3044115100A388D7 /* CAD */,
 			);
 			name = CAD;
+			packageProductDependencies = (
+				7EA0C2803044115200A388D7 /* OCCTSwiftViewport */,
+			);
 			productName = CAD;
 			productReference = 7EA0C2483044115100A388D7 /* CAD.app */;
 			productType = "com.apple.product-type.application";
@@ -194,6 +197,9 @@
 			);
 			mainGroup = 7EA0C23F3044115100A388D7;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				7EA0C27F3044115200A388D7 /* XCRemoteSwiftPackageReference "OCCTSwiftViewport" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 7EA0C2493044115100A388D7 /* Products */;
 			projectDirPath = "";
@@ -556,6 +562,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		7EA0C27F3044115200A388D7 /* XCRemoteSwiftPackageReference "OCCTSwiftViewport" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SecondMouseAU/OCCTSwiftViewport.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		7EA0C2803044115200A388D7 /* OCCTSwiftViewport */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7EA0C27F3044115200A388D7 /* XCRemoteSwiftPackageReference "OCCTSwiftViewport" */;
+			productName = OCCTSwiftViewport;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 7EA0C2403044115100A388D7 /* Project object */;
 	validationLevel = 1;
