@@ -131,6 +131,7 @@ final class BrowserViewController: NSViewController, NSOutlineViewDataSource, NS
     }
 
     func outlineViewSelectionDidChange(_ notification: Notification) {
+        guard outline.selectedRow >= 0 else { return }
         let item = outline.item(atRow: outline.selectedRow) as? String
         delegate?.browserViewController(self, didSelectFeatureID: item.flatMap(UUID.init(uuidString:)))
     }
