@@ -1,0 +1,15 @@
+{
+  "originHash" : "8f916af8b74e1068524057e2d6a8531557351ff60a7e062cc904bdfefaa84143",
+  "pins" : [
+    {
+      "identity" : "occtswiftviewport",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SecondMouseAU/OCCTSwiftViewport.git",
+      "state" : {
+        "revision" : "63263448df9b54447bb9bcbbd62aad809493ccef",
+        "version" : "1.2.0"
+      }
+    }
+  ],
+  "version" : 3
+}
